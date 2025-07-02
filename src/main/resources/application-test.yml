@@ -1,0 +1,22 @@
+goofish:
+  cookies-str: "cookie2=1483cf5ffacd1ef48381d3ba5b3a20f1; _samesite_flag_=true; t=bca626617bbab031eed34dbf5c60a336; _tb_token_=f9073133703eb; tracknick=tb48781105; unb=2150369819; havana_lgc2_77=eyJoaWQiOjIxNTAzNjk4MTksInNnIjoiYTJlZGFiYTRlNzgxYWM2YTY0MTJjZTJiNGRkODJmZjciLCJzaXRlIjo3NywidG9rZW4iOiIxQ0duVU1feUVRWlZReTMyRm1SY284QSJ9; _hvn_lgc_=77; havana_lgc_exp=1753969364347; xlly_s=1; sgcookie=E10035hZdVaNJafv0v4sP2HHzdOagTR9M%2FBoP%2B%2BvYMlVZoEOYoECCxoufda%2F4EcZNQSDviEedbSFy34aq%2BI5rShBgKeRqD0nUe2OeNvEaXW%2F84M%3D; csg=107e3dc3; cna=q73sIFTIgWYCAdpSZ3W/OgTJ; mtop_partitioned_detect=1; _m_h5_tk=5f7bdf12e6d717f874a5bc431cde85d8_1751554465907; _m_h5_tk_enc=9a627ef8f7a6b3fabb2937e2627575d0; sdkSilent=1751636366139; tfstk=gxKsiKwz55V_SijYhNDUAgfcmFSX5vozl-6vEKEaHGITMSpRTC5NbxmfMCfeb1JNXmtfjH8a01lGcKdPcblr40JMIsjxabJ7lcxFDtnVM27OIWZOWblr4DuTpiGsaIkDVdlCn6BOHZBtdwBP9oCvM1QL9T6lDidAMwCdnT5YMPCYvv6c9sIADIIKdt5dMjd8atMV1dMNkqqpMq1yB6ZYDHnc5_9TuoEvAO_6DdCB8e-CCN1RkHZYuhdeHh-G-VaOmp8WGEd-TP59PTOCzFG7fQOGHK6v10259h9XANYU6PB5f1_JXBeuxL_vRHswXj4kLp1OPM8E-f7VfCTlZN3ntI9C_IK1J5GFgUJeXwO-TkOclEKNvhhKVgru4_6rirwCro6CavMQorcsA3KpQ4wKINBhCMMId5sdW9XCavMQorbOK9zIdvN1v"
+  api-url: "https://h5api.m.goofish.com/h5/mtop.taobao.idlemessage.pc.login.token/1.0/"
+  socket-url: "wss://wss-goofish.dingtalk.com/"
+  https-url: "https://www.goofish.com"
+  login-check-url: "https://passport.goofish.com/newlogin/hasLogin.do"
+  heartbeat:
+    interval: 15
+    timeout: 60 # timeout should greater than interval
+  token:
+    refresh-interval: 3600
+    retry-interval: 300
+
+  # Logging
+  logging:
+    level:
+      root: DEBUG
+
+spring:
+  ai:
+    openai:
+      api-key: sk-f4e3408e2d4e4fdb81dcaef00e975c56

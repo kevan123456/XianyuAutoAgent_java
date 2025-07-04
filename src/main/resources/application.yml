@@ -15,11 +15,28 @@ goofish:
   historical-data-maximum: 100 # too much may complain Max frame length of .. has been exceeded.
 
   # Logging
-  logging:
-    level:
-      root: DEBUG
+logging:
+  level:
+    root: INFO
+    org.springframework.r2dbc: DEBUG
 
 spring:
+  sql:
+    init:
+      mode: ALWAYS
+      schema-locations: classpath:schema.sql
+  r2dbc:
+    url: r2dbc:h2:file:///./data/goofish
+    username: sa
+    password:
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
   ai:
     dashscope:
       api-key: ${AI_DASHSCOPE_API_KEY}

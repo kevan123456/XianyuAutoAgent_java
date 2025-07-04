@@ -13,26 +13,26 @@ public class MsgReplyQ {
 
     @Data
     @AllArgsConstructor
-    public static class toReply {
+    public static class ToReply {
         String mid;
         String chatId;
         String receiverId;
         String itemId;
     }
 
-    private final LinkedList<toReply> q = new LinkedList<>();
+    private final LinkedList<ToReply> q = new LinkedList<>();
 
     public void push(String mid, String chatId, String receiverId,String itemId) {
-        q.push(new toReply(mid, chatId, receiverId,itemId));
+        q.push(new ToReply(mid, chatId, receiverId,itemId));
     }
 
-    public Optional<toReply> pop(String mid) {
-        Optional<toReply> result = search(mid);
+    public Optional<ToReply> pop(String mid) {
+        Optional<ToReply> result = search(mid);
         result.ifPresent(q::remove);
         return result;
     }
 
-    public Optional<toReply> search(String mid) {
+    public Optional<ToReply> search(String mid) {
         return q.stream().filter(r -> Objects.equals(r.mid, mid)).findFirst();
     }
 }

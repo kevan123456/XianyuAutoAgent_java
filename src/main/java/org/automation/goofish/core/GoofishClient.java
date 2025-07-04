@@ -90,7 +90,7 @@ public class GoofishClient implements InitializingBean {
     public Mono<String> getToken() {
         String time = String.valueOf(System.currentTimeMillis());
         String deviceIdDataVal = properties.getDeviceIdDataVal();
-
+        logger.info("start fetching access token for webSocket connection");
         return delegate.post()
                 .uri(builder -> {
                     builder.path(properties.getTokenUri());
@@ -116,8 +116,8 @@ public class GoofishClient implements InitializingBean {
     public Mono<JsonNode> getItemInfo(String itemId) {
         String time = String.valueOf(System.currentTimeMillis());
         String itemIdDataVal = """
-            {"itemId": "%s"}
-            """.trim().formatted(itemId);
+                {"itemId": "%s"}
+                """.trim().formatted(itemId);
 
         return delegate.post()
                 .uri(builder -> {
@@ -135,6 +135,7 @@ public class GoofishClient implements InitializingBean {
                 .flatMap(response -> {
                     String ret = response.path("ret").toString();
                     if (ret.contains("SUCCESS::调用成功")) {
+                        logger.info("get item info successful");
                         return Mono.just(response.path("data"));
                     }
                     return Mono.error(new RuntimeException("API调用失败: " + response));

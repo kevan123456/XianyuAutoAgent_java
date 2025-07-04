@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.invoke.MethodHandles.lookup;
+import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 import static org.springframework.util.StringUtils.hasLength;
 
 @Component
@@ -58,7 +59,7 @@ public class MsgDispatcher {
 
         while (!receiveMsg.getMq().isEmpty()) {
             String msg = receiveMsg.getMq().removeFirst();
-            JsonNode node = Message.OBJECT_MAPPER.readTree(msg);
+            JsonNode node = OBJECT_MAPPER.readTree(msg);
             // get redReminder value
             msgContext.redReminder = node.path("3").path("redReminder").asText();
             msgContext.userId = StringUtils.substringBefore(node.path("1").asText(), "@");

@@ -1,5 +1,6 @@
 package org.automation.goofish.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -9,15 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import reactor.core.publisher.Mono;
 
-import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
@@ -39,7 +38,14 @@ public class GoofishClient implements InitializingBean {
     @Getter
     private WebClient delegate;
 
-    @Retryable(value = {RuntimeException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    public static final Map<String, String> COMMON_PARAMS = Map.of(
+            "jsv", "2.7.2", "v", "1.0", "type", "originaljson", "accountSite",
+            "xianyu", "dataType", "json", "timeout", "20000", "sessionOption",
+            "AutoLoginOnly", "spm_cnt", "a21ybx.im.0.0", "appKey", APP_KEY,
+            "api", "mtop.taobao.idlemessage.pc.login.token"
+    );
+
+    //@Retryable(value = {RuntimeException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public boolean hasLogin() {
         ResponseEntity<ObjectNode> response = delegate.post().uri(new DefaultUriBuilderFactory(properties.loginCheckUrl).builder()
                         .queryParams(MultiValueMap.fromSingleValue(
@@ -81,35 +87,58 @@ public class GoofishClient implements InitializingBean {
     }
 
     //@Retryable(value = {RuntimeException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public String getToken() {
-        String t = String.valueOf(System.currentTimeMillis());
-        MultiValueMap<String, String> params = MultiValueMap.fromSingleValue(
-                Map.ofEntries(
-                        Map.entry("jsv", "2.7.2"),
-                        Map.entry("appKey", APP_KEY),
-                        Map.entry("t", t),
-                        Map.entry("sign", properties.generateSign(t, properties.generateToken(), properties.deviceIdDataVal)),
-                        Map.entry("v", "1.0"),
-                        Map.entry("type", "originaljson"),
-                        Map.entry("accountSite", "xianyu"),
-                        Map.entry("dataType", "json"),
-                        Map.entry("timeout", "20000"),
-                        Map.entry("api", "mtop.taobao.idlemessage.pc.login.token"),
-                        Map.entry("sessionOption", "AutoLoginOnly"),
-                        Map.entry("spm_cnt", "a21ybx.im.0.0")
-                ));
-        URI uri = new DefaultUriBuilderFactory(properties.apiUrl).builder()
-                .queryParams(params).build();
-        logger.info("access {} to get token", uri);
-        ResponseEntity<ObjectNode> response = delegate.post().uri(uri)
+    public Mono<String> getToken() {
+        String time = String.valueOf(System.currentTimeMillis());
+        String deviceIdDataVal = properties.getDeviceIdDataVal();
+
+        return delegate.post()
+                .uri(builder -> {
+                    builder.path(properties.getTokenUri());
+                    COMMON_PARAMS.forEach(builder::queryParam);
+                    return builder
+                            .queryParam("sign", properties.generateSign(time, properties.generateToken(), deviceIdDataVal))
+                            .queryParam("t", time)
+                            .build();
+                })
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .bodyValue(MultiValueMap.fromSingleValue(Map.of("data", properties.deviceIdDataVal)))
+                .bodyValue(MultiValueMap.fromSingleValue(Map.of("data", deviceIdDataVal)))
                 .retrieve()
-                .toEntity(ObjectNode.class)
-                .block();
-        String ret = response.getBody().path("ret").toString();
-        if (ret.contains("SUCCESS::调用成功")) return response.getBody().path("data").path("accessToken").asText();
-        throw new RuntimeException("failed to get token: " + response.getBody().toString());
+                .bodyToMono(ObjectNode.class)
+                .flatMap(response -> {
+                    String ret = response.path("ret").toString();
+                    if (ret.contains("SUCCESS::调用成功")) {
+                        return Mono.just(response.path("data").path("accessToken").asText());
+                    }
+                    return Mono.error(new RuntimeException("获取Token失败: " + response));
+                });
+    }
+
+    public Mono<JsonNode> getItemInfo(String itemId) {
+        String time = String.valueOf(System.currentTimeMillis());
+        String itemIdDataVal = """
+            {"itemId": "%s"}
+            """.trim().formatted(itemId);
+
+        return delegate.post()
+                .uri(builder -> {
+                    builder.path(properties.getIteminfoUri());
+                    COMMON_PARAMS.forEach(builder::queryParam);
+                    return builder
+                            .queryParam("sign", properties.generateSign(time, properties.generateToken(), itemIdDataVal))
+                            .queryParam("t", time)
+                            .build();
+                })
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(MultiValueMap.fromSingleValue(Map.of("data", itemIdDataVal)))
+                .retrieve()
+                .bodyToMono(ObjectNode.class)
+                .flatMap(response -> {
+                    String ret = response.path("ret").toString();
+                    if (ret.contains("SUCCESS::调用成功")) {
+                        return Mono.just(response.path("data"));
+                    }
+                    return Mono.error(new RuntimeException("API调用失败: " + response));
+                });
     }
 
     @Override

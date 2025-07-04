@@ -17,12 +17,13 @@ public class MsgReplyQ {
         String mid;
         String chatId;
         String receiverId;
+        String itemId;
     }
 
     private final LinkedList<toReply> q = new LinkedList<>();
 
-    public void push(String mid, String chatId, String receiverId) {
-        q.push(new toReply(mid, chatId, receiverId));
+    public void push(String mid, String chatId, String receiverId,String itemId) {
+        q.push(new toReply(mid, chatId, receiverId,itemId));
     }
 
     public Optional<toReply> pop(String mid) {

@@ -12,19 +12,11 @@ import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.invoke.MethodHandles.lookup;
+import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 public interface Message {
 
     Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
-
-    ObjectMapper OBJECT_MAPPER = createConfiguredObjectMapper();
-
-    static ObjectMapper createConfiguredObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        return mapper;
-    }
 
     @SneakyThrows
     default String toJson() {

@@ -1,6 +1,8 @@
 goofish:
-  cookies-str: "cookie2=1483cf5ffacd1ef48381d3ba5b3a20f1; _samesite_flag_=true; t=bca626617bbab031eed34dbf5c60a336; _tb_token_=f9073133703eb; tracknick=tb48781105; unb=2150369819; havana_lgc2_77=eyJoaWQiOjIxNTAzNjk4MTksInNnIjoiYTJlZGFiYTRlNzgxYWM2YTY0MTJjZTJiNGRkODJmZjciLCJzaXRlIjo3NywidG9rZW4iOiIxQ0duVU1feUVRWlZReTMyRm1SY284QSJ9; _hvn_lgc_=77; havana_lgc_exp=1753969364347; xlly_s=1; cna=q73sIFTIgWYCAdpSZ3W/OgTJ; sdkSilent=1751636366139; sgcookie=E1005J1QMf08s1oOq%2FEWTQ6OKISIgPQL43Sbf3gdWmj87NqnaVf5oDKHblZ0EpGLCt8V%2BAGTdh9DGeEZmQxyRcIklMuSm4ZhtDX%2Fm0Z01tucZEA%3D; csg=4dc1378d; mtop_partitioned_detect=1; _m_h5_tk=a650cf98093d8e66860dd24042eaa6d3_1751596948753; _m_h5_tk_enc=b74fbe49644320c94d2b35dd72d96339; tfstk=gOUSayOwVLvWgmgpO0f2lVXSaH0Iws7wABGLsWLy943JppFt38krz6bIp8D4zYPrywaIrrry8YWoRWeZROWN7NPuZv0dQOWlXlltWXTJvpoLMZ3EOyw8neNuZ2ADgpIaD7AQBvvxJ2eKkmhI12hp2DCjkblZJUnpynpxnx3pyUHpHZhZTUd8p2CbMxcEJbeK2sNxws9ZO6k7N_opau95sQIjLeLLlbiA07Hx8V1EG0tuNxLdBrcWpAF-heLKCuiS_SNPFFVqryes_87vPRNLsknbRKBsKrNYykFDFs3_GorZVo6JRxzrOc3KcBLLG7HqDy3OWKG0D7rLr8OBJb4z7DMic6LnYqUZXleWt1VxyXenjyWMrYFLsPqZ5a9iNoFslg7H7AGNKHOjjeGjQs1XxHX5lPUYaGOAZ0hmNq1fGLgx2jcjQs1XxHm-ij-fGs9Sk"
-  api-url: "https://h5api.m.goofish.com/h5/mtop.taobao.idlemessage.pc.login.token/1.0/"
+  cookies-str: ${COOKIES_STR}
+  api-url: https://h5api.m.goofish.com/h5/
+  get-token-uri: "mtop.taobao.idlemessage.pc.login.token/1.0/"
+  get-iteminfo-uri: "mtop.taobao.idle.pc.detail/1.0/"
   socket-url: "wss://wss-goofish.dingtalk.com/"
   https-url: "https://www.goofish.com"
   login-check-url: "https://passport.goofish.com/newlogin/hasLogin.do"
@@ -10,7 +12,7 @@ goofish:
   token:
     refresh-interval: 3600
     retry-interval: 300
-  historical-data-maximum: 100 # too much may complain Max frame length of 65536 has been exceeded.
+  historical-data-maximum: 100 # too much may complain Max frame length of .. has been exceeded.
 
   # Logging
   logging:
@@ -19,5 +21,8 @@ goofish:
 
 spring:
   ai:
-    openai:
-      api-key: sk-f4e3408e2d4e4fdb81dcaef00e975c56
+    dashscope:
+      api-key: ${AI_DASHSCOPE_API_KEY}
+      chat:
+        options:
+          model: qwen-max

@@ -18,6 +18,8 @@ public class Starter {
     @Bean
     @Profile("!test")
     public CommandLineRunner run(GoofishSocket socket) {
-        return args -> socket.establish().subscribe();
+        return args -> {
+            socket.establish().subscribe();
+        };
     }
 }

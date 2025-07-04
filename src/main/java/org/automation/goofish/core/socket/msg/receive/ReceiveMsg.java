@@ -14,6 +14,8 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
+
 @Data
 public class ReceiveMsg implements Message {
     private Headers headers;

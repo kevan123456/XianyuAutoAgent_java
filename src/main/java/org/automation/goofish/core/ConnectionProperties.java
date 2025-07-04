@@ -2,7 +2,6 @@ package org.automation.goofish.core;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 import lombok.Data;
-import org.automation.goofish.core.socket.msg.Message;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,7 +20,12 @@ import java.util.stream.Collectors;
 public class ConnectionProperties implements InitializingBean {
 
     @Value("${goofish.api-url}")
-    String apiUrl = "https://h5api.m.goofish.com/h5/mtop.taobao.idlemessage.pc.login.token/1.0/"; // default url
+    String apiUrl = "https://h5api.m.goofish.com/h5/"; // default url
+    @Value("${goofish.get-token-uri}")
+    String tokenUri = "mtop.taobao.idlemessage.pc.login.token/1.0/"; // default uri
+    @Value("${goofish.get-iteminfo-uri}")
+    String iteminfoUri = "mtop.taobao.idle.pc.detail/1.0/"; // default uri
+
     @Value("${goofish.socket-url}")
     URI socketUrl = URI.create("wss://wss-goofish.dingtalk.com/");
     @Value("${goofish.https-url}")
@@ -82,9 +86,9 @@ public class ConnectionProperties implements InitializingBean {
         cookie2 = cookies.getOrDefault("cookie2", "");
         cna = cookies.getOrDefault("cna", "");
         token = generateToken();
-        deviceIdDataVal = Message.OBJECT_MAPPER.createObjectNode()
-                .put("appKey", "444e9908a51d1cb236a27862abc769c9")
-                .put("deviceId", deviceId).toString();
+        deviceIdDataVal = """
+                {"appKey": "444e9908a51d1cb236a27862abc769c9","deviceId": "%s"}
+                """.trim().formatted(deviceId);
         sign = generateSign(String.valueOf(System.currentTimeMillis()), generateToken(), deviceIdDataVal);
     }
 }

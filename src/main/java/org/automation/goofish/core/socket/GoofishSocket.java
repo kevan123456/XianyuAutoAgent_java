@@ -10,6 +10,9 @@ import org.automation.goofish.core.socket.msg.MsgDispatcher;
 import org.automation.goofish.core.socket.msg.MsgReplyQ;
 import org.automation.goofish.core.socket.msg.receive.ReceiveMsg;
 import org.automation.goofish.core.socket.msg.send.*;
+import org.automation.goofish.interceptor.AutoReplyService;
+import org.automation.goofish.item.ItemInfo;
+import org.automation.goofish.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,6 +30,7 @@ import reactor.netty.http.client.WebsocketClientSpec;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
@@ -44,6 +48,8 @@ public class GoofishSocket implements InitializingBean {
     MsgReplyQ replyQ;
     @Autowired
     ConnectionProperties properties;
+    @Autowired
+    AutoReplyService replyService;
     ReactorNettyWebSocketClient delegate;
 
     private volatile long lastHeartbeatTime = System.currentTimeMillis();
@@ -53,71 +59,99 @@ public class GoofishSocket implements InitializingBean {
     }
 
     public Mono<Void> establish() {
-        String token = client.getToken();
-        // upgrade https to socket
-        return delegate.execute(properties.getSocketUrl(), session -> {
+        return client.getToken()
+                .flatMap(token -> delegate.execute(properties.getSocketUrl(), session -> {
 
-            /*
-             * /req ----->
-             *     <------/ip-digest
-             * /getStat-->
-             *         <--/sync
-             * /syncDiff->
-             *          <-/ack
-             * */
+                    /*
+                     * /req ----->
+                     *     <------/ip-digest
+                     * /getStat-->
+                     *         <--/sync
+                     * /syncDiff->
+                     *          <-/ack
+                     * */
 
-            // 1. registration request
-            Mono<Void> register = new RegMsg(properties.getDeviceId(), token).send(session);
+                    // 1. registration request
+                    Mono<Void> register = new RegMsg(properties.getDeviceId(), token).send(session);
 
-            // 2. receive msg
-            Flux<Void> receive = session.receive()
-                    .map(WebSocketMessage::getPayloadAsText)
-                    .doOnNext(msg -> logger.info("receive <--- msg {}", Message.prettyJson(msg)))
-                    .flatMap(msg -> {
-                        lastHeartbeatTime = System.currentTimeMillis();
-                        ReceiveMsg recMsg = ReceiveMsg.parse(msg);
+                    // 2. receive msg
+                    Flux<Void> receive = session.receive()
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(msg -> logger.info("receive <--- msg {}", Message.prettyJson(msg)))
+                            .flatMap(msg -> {
+                                lastHeartbeatTime = System.currentTimeMillis();
+                                ReceiveMsg recMsg = ReceiveMsg.parse(msg);
 
-                        replyQ.pop(recMsg.getMid()).ifPresent(reply -> {
-                            // generate msg context give AI
+                                replyQ.pop(recMsg.getMid()).ifPresent(reply -> {
+                                    // 构建消息上下文
+                                    final LinkedList<Pair<String, String>> chatList = new LinkedList<>();
+                                    recMsg.getBody().getUserMessageModels().forEach(model -> {
+                                        String historyMsg = model.getMessage().getExtension().getReminderContent();
+                                        String sender = model.getMessage().getExtension().getSenderUserId();
+                                        chatList.add(new MutablePair<>(
+                                                Objects.equals(sender, properties.getUserId()) ? "商家" : "买家",
+                                                historyMsg
+                                        ));
+                                    });
 
-                            LinkedList<Pair<String, String>> chatList = new LinkedList<>();
-                            for (ReceiveMsg.UserMessageModel model : recMsg.getBody().getUserMessageModels()) {
-                                String historyMsg = model.getMessage().getExtension().getReminderContent();
-                                String sender = model.getMessage().getExtension().getSenderUserId();
-                                chatList.add(new MutablePair<>(Objects.equals(sender, properties.getUserId()) ? "商家" : "买家", historyMsg));
-                            }
-                            chatList = chatList.reversed(); // message q from 0-N is old-latest
-                            chatList.forEach(p -> logger.info(p.toString()));
+                                    // 打印日志（保持原顺序）
+                                    chatList.reversed().forEach(p -> logger.info(p.toString()));
 
-                            String botMsg;
-                            // send text
-                            new ReplyMsg(reply.getChatId(), reply.getReceiverId(), properties.getUserId(), "auto reply").send(session).subscribe();
-                        });
+                                    // 响应式处理流程
+                                    client.getItemInfo(reply.getItemId()) // 返回Mono<JsonNode>
+                                            .flatMap(itemInfo -> {
+                                                ItemInfo i = JsonUtils.readValue(itemInfo.toString(), ItemInfo.class);
+                                                String chatContext = chatList.reversed().stream()
+                                                        .map(pair -> pair.getLeft() + ":" + pair.getRight())
+                                                        .collect(Collectors.joining("\n"));
 
-                        if (recMsg.hasSyncPushPackageMessage()) {
-                            MsgDispatcher.MsgContext msgContext = dispatcher.handle(recMsg, session);
-                            if (StringUtils.hasLength(msgContext.getMessagesQueryMid())) {
-                                replyQ.push(msgContext.getMessagesQueryMid(), msgContext.getChatId(), msgContext.getReceiverId());
-                            }
-                        }
+                                                return replyService.generateReply(
+                                                        chatContext,
+                                                        i.promptSellerSignature(),
+                                                        i.promptSellerLocation(),
+                                                        i.promptSellGoodDesc(),
+                                                        i.promptSellGoodLabel(),
+                                                        i.promptSellGoodPrice()
+                                                );
+                                            })
+                                            .flatMap(botMsg -> {
+                                                return new ReplyMsg(
+                                                        reply.getChatId(),
+                                                        reply.getReceiverId(),
+                                                        properties.getUserId(),
+                                                        botMsg
+                                                ).send(session);
+                                            })
+                                            .subscribe(
+                                                    null,
+                                                    error -> logger.error("failed to process error", error)
+                                            );
+                                });
 
-                        return recMsg.hasIpDigest() ?
-                                new GetStatMsg().send(session) :
-                                recMsg.hasTooLong2Tag() ?
-                                        new AckDiffMsg().send(session) : new AckMsg(recMsg).send(session);
-                    });
+                                if (recMsg.hasSyncPushPackageMessage()) {
+                                    MsgDispatcher.MsgContext msgContext = dispatcher.handle(recMsg, session);
+                                    if (StringUtils.hasLength(msgContext.getMessagesQueryMid())) {
+                                        replyQ.push(msgContext.getMessagesQueryMid(), msgContext.getChatId(), msgContext.getReceiverId(), msgContext.getItemId());
+                                    }
+                                }
 
-            // 3. heartbeat
-            Flux<Void> heartbeat = Flux.interval(Duration.ofSeconds(properties.getInterval()))
-                    .flatMap(tick -> new HeartbeatMsg().send(session));
+                                return recMsg.hasIpDigest() ?
+                                        new GetStatMsg().send(session) :
+                                        recMsg.hasTooLong2Tag() ?
+                                                new AckDiffMsg().send(session) : new AckMsg(recMsg).send(session);
+                            });
 
-            // 4. merge flow
-            return register
-                    .thenMany(Flux.merge(
-                            receive,
-                            heartbeat
-                    )).then();
-        });
+                    // 3. heartbeat
+                    Flux<Void> heartbeat = Flux.interval(Duration.ofSeconds(properties.getInterval()))
+                            .flatMap(tick -> new HeartbeatMsg().send(session));
+
+                    // 4. merge flow
+                    return register
+                            .thenMany(Flux.merge(
+                                    receive,
+                                    heartbeat
+                            )).then();
+                }));
     }
 
     @Override

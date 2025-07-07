@@ -19,7 +19,7 @@ public class GetStatMsg implements Message {
     }
 
     @Data
-    public static class Headers{
+    public static class Headers {
         private String mid = Message.generateMid();
     }
 

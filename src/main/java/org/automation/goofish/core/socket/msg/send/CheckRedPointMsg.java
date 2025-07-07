@@ -12,7 +12,7 @@ import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CheckRedPointMsg implements Message{
+public class CheckRedPointMsg implements Message {
     private String lwp = "/r/Conversation/clearRedPoint";
     private CheckRedPointMsg.Headers headers = new CheckRedPointMsg.Headers();
     private List<Object> body;

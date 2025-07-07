@@ -22,8 +22,8 @@ public class MsgReplyQ {
 
     private final LinkedList<ToReply> q = new LinkedList<>();
 
-    public void push(String mid, String chatId, String receiverId,String itemId) {
-        q.push(new ToReply(mid, chatId, receiverId,itemId));
+    public void push(String mid, String chatId, String receiverId, String itemId) {
+        q.push(new ToReply(mid, chatId, receiverId, itemId));
     }
 
     public Optional<ToReply> pop(String mid) {

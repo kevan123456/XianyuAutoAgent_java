@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
 public interface ChatRepository extends R2dbcRepository<ChatContext, String> {
 
     @Query("""
-        INSERT INTO chat_context (chat_id, chat_history, item_id)
-        VALUES (:#{#chat.chatId}, :#{#chat.chatHistory}, :#{#chat.itemId})
-        """)
+            INSERT INTO chat_context (chat_id, chat_history, item_id)
+            VALUES (:#{#chat.chatId}, :#{#chat.chatHistory}, :#{#chat.itemId})
+            """)
     Mono<Void> insert(@Param("chat") ChatContext chat);
 }

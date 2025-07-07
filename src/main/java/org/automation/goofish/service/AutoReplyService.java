@@ -1,4 +1,4 @@
-package org.automation.goofish.interceptor;
+package org.automation.goofish.service;
 
 import lombok.SneakyThrows;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package org.automation.goofish.interceptor;
+package org.automation.goofish.service;
 
 import org.automation.goofish.Starter;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ public class TestAI {
     AutoReplyService service;
 
     @Test
-    void testReply(){
+    void testReply() {
 
         String context = """
                 

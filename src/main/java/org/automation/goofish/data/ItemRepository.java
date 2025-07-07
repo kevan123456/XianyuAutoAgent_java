@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
 public interface ItemRepository extends R2dbcRepository<ItemContext, String> {
 
     @Query("""
-        INSERT INTO item_context (item_id, item_info)
-        VALUES (:#{#item.itemId}, :#{#item.itemInfo})
-        """)
+            INSERT INTO item_context (item_id, item_info)
+            VALUES (:#{#item.itemId}, :#{#item.itemInfo})
+            """)
     Mono<Void> insert(@Param("item") ItemContext item);
 }

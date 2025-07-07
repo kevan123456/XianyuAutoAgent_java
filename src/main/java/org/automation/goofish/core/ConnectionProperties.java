@@ -78,8 +78,8 @@ public class ConnectionProperties implements InitializingBean {
                 .map(cookie -> cookie.split("=", 2))  // 最多分割成2部分
                 .filter(parts -> parts.length == 2)    // 只保留有效键值对
                 .collect(Collectors.toMap(
-                        parts -> parts[0],                 // 键
-                        parts -> parts[1],                 // 值
+                        parts -> parts[0].trim(),                 // 键
+                        parts -> parts[1].trim(),                 // 值
                         (existing, replacement) -> existing // 重复键处理：保留已有值
                 ));
         userId = cookies.getOrDefault("unb", "");

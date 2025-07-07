@@ -12,6 +12,6 @@ public class HeartbeatMsg implements Message {
 
     @Data
     public static class Headers {
-        private String mid = getMid();
+        private String mid = Message.generateMid();
     }
 }

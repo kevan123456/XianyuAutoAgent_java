@@ -13,12 +13,14 @@ goofish:
     refresh-interval: 3600
     retry-interval: 300
   historical-data-maximum: 100 # too much may complain Max frame length of .. has been exceeded.
+  prompt-config-path: "classpath:prompt-config.txt"
 
   # Logging
 logging:
   level:
     root: INFO
     org.springframework.r2dbc: DEBUG
+    org.automation.goofish.core.socket: TRACE
 
 spring:
   sql:
@@ -42,4 +44,4 @@ spring:
       api-key: ${AI_DASHSCOPE_API_KEY}
       chat:
         options:
-          model: qwen-max
+          model: qwen-max #qwen-max #deepseek-r1

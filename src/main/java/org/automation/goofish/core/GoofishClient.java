@@ -86,6 +86,7 @@ public class GoofishClient implements InitializingBean {
                         .asText());
     }
 
+    /*spm_pre=a21ybx.personal.sidebar.1.494f6ac2w6LFhH&log_id=494f6ac2w6LFhH*/
     //@Retryable(value = {RuntimeException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public Mono<String> getToken() {
         String time = String.valueOf(System.currentTimeMillis());

@@ -2,6 +2,7 @@ package org.automation.goofish.core;
 
 import com.github.curiousoddman.rgxgen.RgxGen;
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -33,8 +34,9 @@ public class ConnectionProperties implements InitializingBean {
     @Value("${goofish.login-check-url}")
     String loginCheckUrl;
 
+    @Getter
     @Value("${goofish.heartbeat.interval}")
-    int interval = 15;
+    long interval = 15L;
     @Value("${goofish.heartbeat.timeout}")
     int timeout;
 

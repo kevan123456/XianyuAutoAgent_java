@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS chat_context (
+DROP TABLE IF EXISTS chat_context;
+CREATE TABLE chat_context (
     chat_id VARCHAR(255) PRIMARY KEY,
     chat_history TEXT,
     item_id VARCHAR(255)

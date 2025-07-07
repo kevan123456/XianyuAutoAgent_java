@@ -10,6 +10,7 @@ import org.automation.goofish.core.socket.msg.Message;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,14 +18,19 @@ import java.util.List;
 import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReceiveMsg implements Message {
     private Headers headers;
     private String lwp;
     private Body body;
     private int code;
+    @JsonIgnore
+    private Object raw;
+    @JsonIgnore
     private LinkedList<String> mq = new LinkedList<>();
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Headers {
         @JsonProperty("app-key")
         private String appKey;
@@ -34,59 +40,15 @@ public class ReceiveMsg implements Message {
         private String dt;
         @JsonProperty("ip-digest")
         private String ipDigest;
-        // for ip-digest
-        @JsonProperty("reg-sid")
-        private String regSid;
-        // for ip-digest
-        @JsonProperty("ip-region-digest")
-        private String ipRegionDigest;
-        // for ip-digest
-        @JsonProperty("reg-uid")
-        private String regUid;
-        // for ip-digest
-        @JsonProperty("real-ip")
-        private String realIp;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Body {
         private SyncPushPackage syncPushPackage;
-        private SyncExtensionModel syncExtensionModel;
         private syncExtraType syncExtraType;
         private Extension extension;
-        // for ip-digest
-        private String unitName;
-        private String cookie;
-        private long timestamp;
-        // for ip-digest
-        @JsonProperty("isFromChina")
-        private boolean fromChina;
-        private String pipeline;
         private String tooLong2Tag;
-        private String topic;
-        private String channel;
-        private String highPts;
-        private String pts;
-        private String seq;
-        private int receiverCount;
-        private int unreadCount;
-        private int msgReadStatusSetting;
-        private int msgReadStatusDowngrade;
-        private String messageId;
-        private String uuid;
-        private long createAt;
-        private Object content;
-        // for failed message reply
-        private String reason;
-        // for failed message reply
-        private String code;
-        // for failed message reply
-        private String developerMessage;
-        // for failed message reply
-        private String scope;
-        // for historical user message
-        private long nextCursor;
         private List<UserMessageModel> userMessageModels;
     }
 
@@ -100,65 +62,50 @@ public class ReceiveMsg implements Message {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HistoryChatMessage {
         private Extension extension;
+        private long createAt;
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Extension {
-        @JsonProperty("_platform")
-        private String platform = "web";
         private String reminderContent;
         private String reminderNotice;
         private String senderUserType;
-        private String detailNotice;
         private String senderUserId;
-        private Object extJson;
         private String sessionType;
         private String reminderUrl;
-        private String bizTag;
         private String reminderTitle;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SyncPushPackage {
-        private long maxHighPts;
-        private long startSeq;
-        private long endSeq;
-        private long minCreateTime;
         private List<SyncData> data;
-        private long maxPts;
-        private int hasMore;
-        private long timestamp;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SyncData {
         private int bizType;
         private String data;
         @JsonIgnore
         private String content;
-        private String streamId;
         private int objectType;
-        private String syncId;
     }
 
     @Data
-    public static class SyncExtensionModel {
-        private int reconnectType;
-        private int failover;
-        private int fingerprint;
-    }
-
-    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class syncExtraType {
         private int type;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public boolean hasSyncPushPackageMessage() {
         return (body != null && body.syncPushPackage != null && body.syncPushPackage.data != null && !body.syncPushPackage.data.isEmpty()) &&
                 body.syncPushPackage.data.stream().anyMatch(x -> StringUtils.hasLength(x.data));
     }
 
+    @JsonIgnore
     public String getMessage(int idx) {
         if (body == null || body.syncPushPackage == null || body.syncPushPackage.data == null) {
             return "";
@@ -171,23 +118,21 @@ public class ReceiveMsg implements Message {
         };
     }
 
+    @JsonIgnore
     public void setMessageContent(int idx, String value) {
         SyncData data = body.syncPushPackage.data.get(idx);
         data.setContent(value);
     }
 
+    @JsonIgnore
     public String getMessage() {
         return getMessage(0);
-    }
-
-    public void setMessageContent(String value) {
-        setMessageContent(0, value);
     }
 
     @SneakyThrows
     public static ReceiveMsg parse(String json) {
         ReceiveMsg recMsg = OBJECT_MAPPER.readValue(json, ReceiveMsg.class);
-
+        recMsg.setRaw(json);
         if (recMsg.hasSyncPushPackageMessage()) {
             List<SyncData> dataList = recMsg.getBody().getSyncPushPackage().data;
             for (int i = 0; i < dataList.size(); i++) {
@@ -195,7 +140,6 @@ public class ReceiveMsg implements Message {
                 if (StringUtils.hasLength(content)) {
                     recMsg.setMessageContent(i, content);
                     recMsg.getMq().addLast(content);
-                    logger.info("unpack <---> message: {}", Message.prettyJson(content));
                 }
             }
         }
@@ -214,14 +158,11 @@ public class ReceiveMsg implements Message {
         return new String(msgpackBytes);
     }
 
-    public boolean shouldReply() {
-        return hasMid() && hasAppKey();
-    }
-
     public boolean hasMid() {
         return headers != null && StringUtils.hasLength(headers.mid);
     }
 
+    @JsonIgnore
     public String getMid() {
         return hasMid() ? headers.mid : "";
     }
@@ -230,6 +171,7 @@ public class ReceiveMsg implements Message {
         return headers != null && StringUtils.hasLength(headers.sid);
     }
 
+    @JsonIgnore
     public String getSid() {
         return hasSid() ? headers.sid : "";
     }
@@ -238,6 +180,7 @@ public class ReceiveMsg implements Message {
         return headers != null && StringUtils.hasLength(headers.appKey);
     }
 
+    @JsonIgnore
     public String getAppKey() {
         return hasAppKey() ? headers.appKey : "";
     }
@@ -246,6 +189,7 @@ public class ReceiveMsg implements Message {
         return headers != null && StringUtils.hasLength(headers.ua);
     }
 
+    @JsonIgnore
     public String getUa() {
         return hasUa() ? headers.ua : "";
     }
@@ -254,6 +198,7 @@ public class ReceiveMsg implements Message {
         return headers != null && StringUtils.hasLength(headers.dt);
     }
 
+    @JsonIgnore
     public String getDt() {
         return hasDt() ? headers.dt : "";
     }
@@ -262,23 +207,12 @@ public class ReceiveMsg implements Message {
         return headers != null && StringUtils.hasLength(headers.ipDigest);
     }
 
-    public boolean hasSyncExtraType() {
-        return body != null && body.syncExtraType != null;
-    }
-
-    public int getSyncExtraType() {
-        return hasSyncExtraType() ? body.syncExtraType.type : -1;
-    }
-
-    public boolean reqSync() {
-        return "/s/sync".equals(lwp);
-    }
-
-    public boolean reqVulcan() {
-        return "/s/vulcan".equals(lwp);
-    }
-
     public boolean hasTooLong2Tag() {
         return body != null && StringUtils.hasLength(body.tooLong2Tag);
+    }
+
+    @JsonIgnore
+    public List<SyncData> getSyncData() {
+        return body != null && body.syncPushPackage != null && body.syncPushPackage.data != null ? body.syncPushPackage.data : new ArrayList<>();
     }
 }

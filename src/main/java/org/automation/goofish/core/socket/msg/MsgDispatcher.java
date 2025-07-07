@@ -8,7 +8,6 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.automation.goofish.core.ConnectionProperties;
 import org.automation.goofish.core.socket.msg.receive.ReceiveMsg;
-import org.automation.goofish.core.socket.msg.send.ListUserMessageMsg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +37,8 @@ public class MsgDispatcher {
     @Data
     @ToString
     public static class MsgContext {
+        int identity;
+        boolean needReply;
         String redReminder;
         String userId;
         String userUrl;
@@ -46,15 +46,22 @@ public class MsgDispatcher {
         String sendUserName;
         String receiverId;
         String sendMessage;
+        String messageId;
         String urlInfo;
         String itemId;
         String chatId;
+        String mid;
+        String historyChat;
+        String itemInfo;
         String messagesQueryMid; // used for filter response return listed history chat
     }
 
     @SneakyThrows
     public Mono<MsgContext> handle(ReceiveMsg receiveMsg, WebSocketSession session) {
         MsgContext msgContext = new MsgContext();
+
+        msgContext.setMid(receiveMsg.getMid());
+        msgContext.setIdentity(receiveMsg.hashCode());
 
         // 1. 同步解析消息（无法避免，但后续操作转为响应式）
         while (!receiveMsg.getMq().isEmpty()) {
@@ -75,6 +82,7 @@ public class MsgDispatcher {
             msgContext.sendUserName = node.path("1").path("10").path("reminderTitle").asText();
             msgContext.receiverId = node.path("1").path("10").path("senderUserId").asText();
             msgContext.sendMessage = node.path("1").path("10").path("reminderContent").asText();
+            msgContext.messageId = node.path("1").path("3").asText();
 
             // 解析 itemId 和 chatId
             msgContext.urlInfo = node.path("1").path("10").path("reminderUrl").asText();
@@ -86,24 +94,6 @@ public class MsgDispatcher {
             }
             msgContext.chatId = StringUtils.substringBefore(node.path("1").path("2").asText(), "@");
         }
-
-        // 2. 条件检查并返回 Mono<MsgContext>
-        logger.info("dump chat context: {}", msgContext);
-
-        if (hasLength(msgContext.chatId) &&
-                hasLength(msgContext.receiverId) &&
-                !Objects.equals(msgContext.receiverId, properties.getUserId())) {
-
-            // 发送消息并返回 msgContext（不等待发送完成）
-            ListUserMessageMsg listUserMessageMsg = new ListUserMessageMsg(msgContext.chatId, historicalDataMaximum);
-            msgContext.messagesQueryMid = listUserMessageMsg.getHeaders().getMid();
-
-            return Mono.fromRunnable(() ->
-                    listUserMessageMsg.send(session).subscribe()  // 异步发送
-            ).thenReturn(msgContext);  // 忽略 send 的结果，直接返回 msgContext
-        } else {
-            // 无需发送消息，直接返回
-            return Mono.just(msgContext);
-        }
+        return Mono.just(msgContext);
     }
 }

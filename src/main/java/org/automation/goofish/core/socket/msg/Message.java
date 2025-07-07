@@ -1,6 +1,7 @@
 package org.automation.goofish.core.socket.msg;
 
 import lombok.SneakyThrows;
+import org.automation.goofish.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -10,7 +11,6 @@ import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.invoke.MethodHandles.lookup;
-import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 public interface Message {
 
@@ -18,7 +18,7 @@ public interface Message {
 
     @SneakyThrows
     default String toJson() {
-        return OBJECT_MAPPER.writeValueAsString(this);
+        return JsonUtils.toJson(this);
     }
 
     static String generateMid() {
@@ -34,13 +34,8 @@ public interface Message {
 
     @SneakyThrows
     default Mono<Void> send(WebSocketSession session) {
-        return session.send(Mono.just(session.textMessage(toJson())))
-                .doOnSuccess(v -> logger.info("sent ---> msg {}", prettyJson(toJson())))
-                .doOnError(e -> logger.error("error {} occur while sending msg: {}", e.getMessage(), prettyJson(toJson())));
-    }
-
-    @SneakyThrows
-    static String prettyJson(String json) {
-        return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(OBJECT_MAPPER.readValue(json, Object.class));
+        String json = toJson();
+        logger.trace("sent ---> msg [{}] {}", hashCode(), JsonUtils.prettyJson(json));
+        return session.send(Mono.just(session.textMessage(json)));
     }
 }

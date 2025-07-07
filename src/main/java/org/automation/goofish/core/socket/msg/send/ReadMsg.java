@@ -12,17 +12,14 @@ import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CheckRedPointMsg implements Message {
-    private String lwp = "/r/Conversation/clearRedPoint";
-    private CheckRedPointMsg.Headers headers = new CheckRedPointMsg.Headers();
+public class ReadMsg implements Message {
+    private String lwp = "/r/MessageStatus/read";
+    private ReadMsg.Headers headers = new ReadMsg.Headers();
     private List<Object> body;
 
-    public CheckRedPointMsg(String chatId, String msgId) {
+    public ReadMsg(String msgId) {
         ArrayNode array = OBJECT_MAPPER.createArrayNode();
-        ObjectNode f = OBJECT_MAPPER.createObjectNode();
-        f.put("cid", chatId + "@goofish");
-        f.put("messageId", msgId);
-        body = List.of(array.add(f));
+        body = List.of(array.add(msgId));
     }
 
     @Data

@@ -227,7 +227,7 @@ public class GoofishSocket implements InitializingBean {
                     }
                     return Mono.empty();
                 })
-                .then(new CheckRedPointMsg(ctx.getChatId(), ctx.getMessageId()).send(session))
+                .then(new ReadMsg(ctx.getMessageId()).send(session))
                 .then(loadItem(ctx))
                 .then(Mono.defer(() -> {
                     // only reply when sender in not the receiver

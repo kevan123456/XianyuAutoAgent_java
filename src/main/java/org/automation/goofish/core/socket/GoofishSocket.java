@@ -182,10 +182,10 @@ public class GoofishSocket implements InitializingBean {
     }
 
     @SneakyThrows
-    private Mono<ChatContext> updateChatHistory(MsgDispatcher.MsgContext ctx, String msg, boolean seller) {
+    public Mono<ChatContext> updateChatHistory(String historyChat, String msg, boolean seller, String chatId, String itemId) {
         // 1. 解析现有历史记录
         ObjectNode historyJson = (ObjectNode) OBJECT_MAPPER.readTree(
-                ctx.getHistoryChat() != null ? ctx.getHistoryChat() : """
+                historyChat != null ? historyChat : """
                         {"messages":[]}
                         """.trim()
         );
@@ -200,24 +200,30 @@ public class GoofishSocket implements InitializingBean {
         ArrayNode messages = (ArrayNode) historyJson.get("messages");
         messages.insert(0, newMessage); // 插入到数组开头（保持倒序）
 
-        // 4. 更新上下文
-        ctx.setHistoryChat(historyJson.toString());
-
-        // 5. 保存到数据库
+        // 4. 保存到数据库
         return chatRepository.save(new ChatContext(
-                ctx.getChatId(),
+                chatId,
                 historyJson.toString(),
-                ctx.getItemId()
+                itemId
         ));
     }
+
+    ConcurrentHashMap<String, Boolean> m = new ConcurrentHashMap<>();
 
     private Mono<Void> reply(WebSocketSession session, MsgDispatcher.MsgContext ctx) {
         logger.trace("[{}] dump message context before reply {}", ctx.getIdentity(), ctx);
 
         // 拼接最新消息到历史记录
-        return Mono.fromCallable(() -> {
-                    if (hasLength(ctx.getSendMessage())) {
-                        return updateChatHistory(ctx, ctx.getSendMessage(), false);
+        return Mono.just(ctx)
+                .flatMap(context -> {
+                    if (hasLength(context.getSendMessage())) {
+                        return updateChatHistory(context.getHistoryChat(), context.getSendMessage(),
+                                false, context.getChatId(), context.getItemId()
+                        )
+                                .flatMap(updatedChat -> {
+                                    context.setHistoryChat(updatedChat.getChatHistory());
+                                    return Mono.empty();
+                                });
                     }
                     return Mono.empty();
                 })
@@ -225,11 +231,24 @@ public class GoofishSocket implements InitializingBean {
                 .then(loadItem(ctx))
                 .then(Mono.defer(() -> {
                     // only reply when sender in not the receiver
-                    if (!Objects.equals(properties.getUserId(), ctx.getReceiverId())) {
-                        return botReply(session, ctx).flatMap(botMsg -> updateChatHistory(ctx, botMsg, true)).then();
+                    if (!Objects.equals(properties.getUserId(), ctx.getReceiverId()) && !m.containsKey(ctx.getChatId())) {
+                        return botReply(session, ctx);
+                    } else {
+                        // user manually reply
+                        if (Objects.equals(ctx.getSendMessage(), "[微笑]")) {
+                            // return to auto mode
+                            m.remove(ctx.getChatId());
+                        } else {
+                            // switch to manually mode
+                            m.put(ctx.getChatId(), true);
+                        }
+                        return Mono.just(ctx.getSendMessage());
                     }
+                })).flatMap(m -> updateChatHistory(ctx.getHistoryChat(), m,
+                        true, ctx.getChatId(), ctx.getItemId())).flatMap(c -> {
+                    ctx.setHistoryChat(c.getChatHistory());
                     return Mono.empty();
-                }));
+                });
     }
 
     // 将商品信息加载到上下文中
@@ -352,6 +371,11 @@ public class GoofishSocket implements InitializingBean {
                                 });
                         case 40103 -> {
                             logger.debug("processing message with objectType 40103, mid: {}", m.getMid());
+                            yield Mono.just(m);
+                        }
+                        // 消息已读
+                        case 40102 -> {
+                            logger.debug("processing message with objectType 40102, mid: {}", m.getMid());
                             yield Mono.just(m);
                         }
                         case 37000 -> {

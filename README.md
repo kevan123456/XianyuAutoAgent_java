@@ -29,8 +29,8 @@
 ### 安装步骤
 ```bash
 1. 克隆仓库
-git clone https://github.com/qOeOp/goofish-ai-cs.git
-cd goofish-ai-cs
+git clone https://github.com/qOeOp/XianyuAutoAgent.git
+cd XianyuAutoAgent
 
 2. 配置环境变量
 - AI_DASHSCOPE_API_KEY : 阿里云大模型API-KEY
@@ -55,3 +55,9 @@ COOKIES_STR自行在闲鱼网页端获取cookies(网页端F12打开控制台，�
 ⚠️ 注意：**本项目仅供学习与交流，如有侵权联系作者删除。**
 
 鉴于项目的特殊性，开发团队可能在任何时间**停止更新**或**删除项目**。
+
+
+## 🧸 特别鸣谢
+
+本项目基于以下开源项目重构：
+- [XianyuAutoAgent](https://github.com/shaxiu/XianyuAutoAgent) - 智能闲鱼客服机器人系统，由 [@shaxiu](https://github.com/shaxiu) 和 [@cv-cat](https://github.com/cv-cat) 开发

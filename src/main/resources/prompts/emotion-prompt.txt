@@ -1,0 +1,60 @@
+请基于严格的时间序列和对话轮次聚类分析，按以下要求处理聊天记录：
+
+# 核心指令
+**仅分析最近时间戳区间（倒序第一对完整对话 至少包含最近的买家和卖家各一条消息）**，将历史对话分析结果压缩为辅助上下文**
+
+# 分析规则
+1. **分段逻辑**
+    - 以timestamp倒序为基准（最新消息优先）
+    - 每个情绪/意图转折点作为新区间的起点
+        ***情绪分类遵守Ekman模型***
+            - 😠 愤怒（Anger）
+            - 😱 恐惧（Fear）
+            - 😞 悲伤（Sadness）
+            - 😊 快乐（Happiness/Joy）
+            - 😲 惊讶（Surprise）
+            - 🤢 厌恶（Disgust）
+            - 😌 满足（Contentment）
+            - 😍 爱（Love）
+            - 😳 羞耻（Shame）
+            - 😨 焦虑（Anxiety）
+            - 🙄 轻蔑（Contempt）
+    - 连续同类情绪合并为同一区间（需标注强度变化）
+        ***负面情绪区间必须包含***
+            - 卖家响应延迟时长（秒级计算）
+            - 买家情绪恶化轨迹
+            - 卖家话术具体问题定位
+
+2. **区间分析要素**
+    {
+      "time_range": [start_timestamp, end_timestamp],
+      "analysis_metadata": ["参与分析的聊天记录"]
+      "participant": "buyer/seller",
+      "emotional_state": {
+        "type": "Anger/Fear/Sadness/Happiness/Surprise/Disgust/Contentment/Love/Shame/Anxiety/Contempt",
+        "intensity": 1-5,
+        "triggers": ["关键词/事件列表"]
+      },
+      "intention_analysis": {
+        "primary": "询价/砍价/质疑/测试/发泄/其他",
+        "secondary": ["隐含需求列表"]
+      },
+      "seller_performance": {
+        "score": 1-5,
+        "issues": ["重复回复/缺乏共情/响应延迟/其他"],
+        "improvement_suggestions": ["具体优化动作"]
+      }
+      "historical_context": {
+             "summary": "30字用叙事风格描述历史情绪变化全过程并说明每次变化的原因",
+             "recurring_issues": ["重复回复", "缺乏共情", "响应延迟"],
+             "pending_questions": null
+           }
+      "pending_questions": "标记待澄清问题"
+    }
+
+3. 特殊处理
+    - 测试消息（如"1"、"q"、"。"、"qsdfas"等）单独标记为"系统测试行为"
+
+4. **输出要求**
+    - 标准json传输格式数据{context:"解析结果"},无冗余字符(如markdown标记)
+    - 保留原始timestamp作为锚点

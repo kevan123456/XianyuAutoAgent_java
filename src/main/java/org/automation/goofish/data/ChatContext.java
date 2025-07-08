@@ -16,5 +16,6 @@ public class ChatContext {
     @Id
     private String chatId;
     String chatHistory;
+    String chatAnalysis;
     private String itemId;
 }

@@ -159,6 +159,7 @@ public class GoofishSocket implements InitializingBean {
             ChatContext chatContext = new ChatContext(
                     context.getChatId(),
                     chatHistoryJson.toString(),
+                    null,
                     context.getItemId()
             );
             logger.trace("[{}] insert history chat list json to database: {}", recMsg.hashCode(), chatHistoryJson);
@@ -204,6 +205,7 @@ public class GoofishSocket implements InitializingBean {
         return chatRepository.save(new ChatContext(
                 chatId,
                 historyJson.toString(),
+                null,
                 itemId
         ));
     }

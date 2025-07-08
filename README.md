@@ -65,7 +65,7 @@ mvn spring-boot:run
 注意：默认使用的模型是通义千问，如需使用其他API，请自行修改application.yml文件中的模型地址和模型名称；
 COOKIES_STR自行在闲鱼网页端获取cookies(网页端F12打开控制台，选择Network，点击Fetch/XHR,点击一个请求，查看cookies)
 
-4. (可选)创建提示词文件src/main/resources/prompt-config.txt
+4. (可选)创建提示词文件src/main/resources/*-prompt.txt
 ```
 
 ## 🤝 参与贡献

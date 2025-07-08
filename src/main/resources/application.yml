@@ -13,14 +13,15 @@ goofish:
     refresh-interval: 3600
     retry-interval: 300
   historical-data-maximum: 100 # too much may complain Max frame length of .. has been exceeded.
-  prompt-config-path: "classpath:prompt-config.txt"
+  system-prompt: "classpath:prompts/system-prompt.txt"
+  emotion-prompt: "classpath:prompts/emotion-prompt.txt"
 
   # Logging
 logging:
   level:
     root: INFO
     org.springframework.r2dbc: DEBUG #DEBUG
-    org.automation.goofish.core.socket: TRACE #TRACE
+    org.automation.goofish.core.socket: DEBUG #TRACE
 
 spring:
   sql:

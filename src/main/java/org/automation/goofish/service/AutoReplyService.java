@@ -6,12 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.nio.file.Files;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
@@ -23,8 +22,8 @@ public class AutoReplyService {
 
     @Autowired
     @SneakyThrows
-    public AutoReplyService(ChatClient.Builder builder, @Value("${goofish.prompt-config-path}") String systemPrompt, ResourceLoader resourceLoader) {
-        this.systemPrompt = Files.readString(resourceLoader.getResource(systemPrompt).getFile().toPath());
+    public AutoReplyService(ChatClient.Builder builder, @Value("${goofish.prompt-config-path}") Resource systemPrompt) {
+        this.systemPrompt = new String(FileCopyUtils.copyToByteArray(systemPrompt.getInputStream()));
         this.chatClient = builder.defaultSystem(this.systemPrompt).build();
     }
 

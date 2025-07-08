@@ -2,7 +2,6 @@ package org.automation.goofish.core.socket.msg.send;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.automation.goofish.core.socket.msg.Message;
 

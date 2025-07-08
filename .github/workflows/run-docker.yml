@@ -15,24 +15,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Pull Docker image
-      run: docker pull qoeop/xianyuautoagent:latest
-      
-    - name: Run Docker container
-      run: |
-        docker run -d \
-          -e AI_DASHSCOPE_API_KEY='${{ github.event.inputs.api_key }}' \
-          -e COOKIES_STR='${{ github.event.inputs.cookies }}' \
-          qoeop/xianyuautoagent:latest
-        
-    - name: Check container status
-      run: |
-        echo "Waiting for container to start..."
-        sleep 10
-        echo "All running containers:"
-        docker ps -a
-        echo "Logs of the container (if any):"
-        docker logs $(docker ps -aq --filter ancestor=qoeop/xianyuautoagent:latest) || echo "No logs available"
-        echo "Docker events:"
-        docker events --since 1m --until 0m || echo "No recent events"
+      - name: Pull Docker image
+        run: docker pull qoeop/xianyuautoagent:latest
+
+      - name: Run Docker container
+        run: |
+          docker run -d \
+            -e AI_DASHSCOPE_API_KEY='${{ github.event.inputs.api_key }}' \
+            -e COOKIES_STR='${{ github.event.inputs.cookies }}' \
+            qoeop/xianyuautoagent:latest
+
+      - name: Check container status
+        run: |
+          echo "waiting for container to start..."
+          sleep 10
+          echo "all running containers:"
+          docker ps -a
+          echo "logs of the container (if any):"
+          docker logs $(docker ps -aq --filter ancestor=qoeop/xianyuautoagent:latest) || echo "No logs available"
+          echo "docker events:"
+          docker events --since 1m --until 0m || echo "No recent events"
 

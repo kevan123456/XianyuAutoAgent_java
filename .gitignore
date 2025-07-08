@@ -16,7 +16,6 @@
 *.iws
 *.ipr
 target
-data/
 
 # Package Files #
 *.jar

@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static java.lang.invoke.MethodHandles.lookup;
@@ -41,7 +42,7 @@ public class GoofishClient implements InitializingBean {
     public static final Map<String, String> COMMON_PARAMS = Map.of(
             "jsv", "2.7.2", "v", "1.0", "type", "originaljson", "accountSite",
             "xianyu", "dataType", "json", "timeout", "20000", "sessionOption",
-            "AutoLoginOnly", "spm_cnt", "a21ybx.im.0.0", "appKey", APP_KEY,
+            "AutoLoginOnly", "appKey", APP_KEY,
             "api", "mtop.taobao.idlemessage.pc.login.token"
     );
 
@@ -98,6 +99,7 @@ public class GoofishClient implements InitializingBean {
                     COMMON_PARAMS.forEach(builder::queryParam);
                     return builder
                             .queryParam("sign", properties.generateSign(time, properties.generateToken(), deviceIdDataVal))
+                            .queryParam("spm_cnt", "a21ybx.im.0.0")
                             .queryParam("t", time)
                             .build();
                 })
@@ -114,6 +116,10 @@ public class GoofishClient implements InitializingBean {
                 });
     }
 
+    private final static String pvid = new Random().ints(14, 0, 60)
+            .mapToObj(i -> String.valueOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz".charAt(i)))
+            .collect(Collectors.joining());
+
     public Mono<JsonNode> getItemInfo(String itemId) {
         String time = String.valueOf(System.currentTimeMillis());
         String itemIdDataVal = """
@@ -126,6 +132,8 @@ public class GoofishClient implements InitializingBean {
                     COMMON_PARAMS.forEach(builder::queryParam);
                     return builder
                             .queryParam("sign", properties.generateSign(time, properties.generateToken(), itemIdDataVal))
+                            .queryParam("spm_cnt", "a21ybx.item.0.0")
+                            .queryParam("spm_pre", "a21ybx.personal.feeds.%d.%s".formatted(new Random().nextInt(50) + 1), pvid)
                             .queryParam("t", time)
                             .build();
                 })

@@ -13,7 +13,7 @@ on:
 jobs:
   run-service:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Pull Docker image
         run: docker pull qoeop/xianyuautoagent:latest
@@ -21,18 +21,20 @@ jobs:
       - name: Run Docker container
         run: |
           docker run -d \
+            --name my_service_container \
             -e AI_DASHSCOPE_API_KEY='${{ github.event.inputs.api_key }}' \
             -e COOKIES_STR='${{ github.event.inputs.cookies }}' \
             qoeop/xianyuautoagent:latest
 
-      - name: Check container status
+      - name: Output Docker logs and keep alive
         run: |
-          echo "waiting for container to start..."
-          sleep 10
-          echo "all running containers:"
-          docker ps -a
-          echo "logs of the container (if any):"
-          docker logs $(docker ps -aq --filter ancestor=qoeop/xianyuautoagent:latest) || echo "No logs available"
-          echo "docker events:"
-          docker events --since 1m --until 0m || echo "No recent events"
-
+          echo "Displaying logs and keeping container alive..."
+          while :; do
+            docker logs --tail 10 -f my_service_container &
+            CONTAINER_STATUS=$(docker inspect -f '{{.State.Running}}' my_service_container)
+            if [ "$CONTAINER_STATUS" = "false" ]; then
+              echo "Container has stopped unexpectedly. Exiting..."
+              exit 1
+            fi
+            sleep 60
+          done

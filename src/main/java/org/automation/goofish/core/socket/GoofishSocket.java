@@ -247,9 +247,11 @@ public class GoofishSocket implements InitializingBean {
                         }
                         return Mono.just(ctx.getSendMessage());
                     }
-                })).flatMap(m -> updateChatHistory(ctx.getHistoryChat(), m,
-                        true, ctx.getChatId(), ctx.getItemId())).flatMap(c -> {
+                })).flatMap(m -> {
                     logger.info("商家: {}", m);
+                    return updateChatHistory(ctx.getHistoryChat(), m,
+                            true, ctx.getChatId(), ctx.getItemId());
+                }).flatMap(c -> {
                     ctx.setHistoryChat(c.getChatHistory());
                     return Mono.empty();
                 });

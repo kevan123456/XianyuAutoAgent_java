@@ -19,8 +19,8 @@ goofish:
 logging:
   level:
     root: INFO
-    org.springframework.r2dbc: DEBUG
-    org.automation.goofish.core.socket: INFO
+    org.springframework.r2dbc: DEBUG #DEBUG
+    org.automation.goofish.core.socket: TRACE #TRACE
 
 spring:
   sql:

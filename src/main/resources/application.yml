@@ -20,7 +20,7 @@ logging:
   level:
     root: INFO
     org.springframework.r2dbc: DEBUG
-    org.automation.goofish.core.socket: DEBUG
+    org.automation.goofish.core.socket: INFO
 
 spring:
   sql:

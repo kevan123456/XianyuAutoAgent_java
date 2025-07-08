@@ -133,7 +133,9 @@ public class GoofishClient implements InitializingBean {
                     return builder
                             .queryParam("sign", properties.generateSign(time, properties.generateToken(), itemIdDataVal))
                             .queryParam("spm_cnt", "a21ybx.item.0.0")
-                            .queryParam("spm_pre", "a21ybx.personal.feeds.%d.%s".formatted(new Random().nextInt(50) + 1), pvid)
+                            .queryParam("spm_pre", "a21ybx.personal.feeds.%d.%s".formatted(
+                                    new Random().nextInt(50) + 1, pvid
+                            ))
                             .queryParam("t", time)
                             .build();
                 })

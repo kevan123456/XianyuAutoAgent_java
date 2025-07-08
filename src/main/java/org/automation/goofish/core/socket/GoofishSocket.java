@@ -119,7 +119,7 @@ public class GoofishSocket implements InitializingBean {
                         context.setHistoryChat(chat.getChatHistory());
                         // Emit value if we got data from DB
                         if (toReply != null) {
-                            logger.info("[{}] emitting pending reply {} to sink", recMsg.hashCode(), toReply);
+                            logger.debug("[{}] emitting pending reply {} to sink", recMsg.hashCode(), toReply);
                             toReply.responseSink.emitValue(recMsg, (signal, result) -> {
                                 if (result.isFailure()) {
                                     logger.error("[{}] emit failed", recMsg.hashCode());
@@ -232,20 +232,24 @@ public class GoofishSocket implements InitializingBean {
                 .then(Mono.defer(() -> {
                     // only reply when sender in not the receiver
                     if (!Objects.equals(properties.getUserId(), ctx.getReceiverId()) && !m.containsKey(ctx.getChatId())) {
+                        logger.info("买家: {}", ctx.getSendMessage());
                         return botReply(session, ctx);
                     } else {
                         // user manually reply
                         if (Objects.equals(ctx.getSendMessage(), "[微笑]")) {
                             // return to auto mode
+                            logger.info("received emoji [微笑], exit manual mode for chat {}", ctx.getChatId());
                             m.remove(ctx.getChatId());
                         } else {
                             // switch to manually mode
+                            logger.info("detected user send message from other device, suspend for the chat {}", ctx.getChatId());
                             m.put(ctx.getChatId(), true);
                         }
                         return Mono.just(ctx.getSendMessage());
                     }
                 })).flatMap(m -> updateChatHistory(ctx.getHistoryChat(), m,
                         true, ctx.getChatId(), ctx.getItemId())).flatMap(c -> {
+                    logger.info("商家: {}", m);
                     ctx.setHistoryChat(c.getChatHistory());
                     return Mono.empty();
                 });
@@ -356,7 +360,7 @@ public class GoofishSocket implements InitializingBean {
                         case 40000 -> dispatcher.handle(m, session)
                                 .flatMap(context -> {
                                     ToReply pending = new ToReply(context);
-                                    logger.info("put {} : {} into pending reply", m.getHeaders(), pending);
+                                    logger.debug("put {} : {} into pending reply", m.getHeaders(), pending);
                                     pendingRequests.put(m.getMid(), pending);
 
                                     // send api request to get history

@@ -1,5 +1,6 @@
 package org.automation.goofish.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -38,7 +39,8 @@ public class AutoReplyService implements InitializingBean {
     }
 
     public Mono<String> generateReply(String prompt) {
-        logger.info("send prompt to ai host: {}", prompt);
+        //logger.info("send prompt to ai host: {}", prompt);
+        logger.info("send prompt to ai host");
         return Mono.fromCallable(() ->
                 chatClient.prompt()
                         .system(systemPrompt)

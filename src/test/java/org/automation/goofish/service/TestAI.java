@@ -1,5 +1,6 @@
 package org.automation.goofish.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.automation.goofish.Starter;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import reactor.core.publisher.Mono;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
@@ -25,6 +27,16 @@ public class TestAI {
         String context = """
                 {
                   "chat_history": [
+                  {
+                      "role": "buyer",
+                      "content": "好的好的谢谢你",
+                      "timestamp": 1751880998187
+                    },
+                    {
+                      "role": "seller",
+                      "content": "今天帮你发货",
+                      "timestamp": 1751880998186
+                    },
                     {
                       "role": "buyer",
                       "content": "我不需要",
@@ -568,7 +580,12 @@ public class TestAI {
                 %s
                 """.formatted(service.emotionPrompt, context);
         String reply = service.generateReply(msg).block();
-
         logger.info("analysis result for chat history: {}", reply);
+        String fin = """
+                基于以下上下文生成你的回复
+                %s
+                """.formatted(reply);
+        String r = service.generateReply(fin).block();
+        logger.info(r);
     }
 }

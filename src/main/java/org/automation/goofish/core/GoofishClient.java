@@ -125,7 +125,7 @@ public class GoofishClient implements InitializingBean {
         String itemIdDataVal = """
                 {"itemId": "%s"}
                 """.trim().formatted(itemId);
-
+        logger.info("send https requests to retrieve item info for: {}", itemId);
         return delegate.post()
                 .uri(builder -> {
                     builder.path(properties.getIteminfoUri());

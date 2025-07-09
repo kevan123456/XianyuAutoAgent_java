@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import org.automation.goofish.core.socket.msg.Message;
+import org.automation.goofish.core.socket.msg.MsgDispatcher;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.springframework.util.StringUtils;
 
@@ -18,6 +20,7 @@ import java.util.List;
 import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
 
 @Data
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReceiveMsg implements Message {
     private Headers headers;
@@ -28,6 +31,9 @@ public class ReceiveMsg implements Message {
     private Object raw;
     @JsonIgnore
     private LinkedList<String> mq = new LinkedList<>();
+
+    @JsonIgnore
+    private MsgDispatcher.MsgContext context;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -150,12 +156,16 @@ public class ReceiveMsg implements Message {
     public String msgUnpack(String base64Data) {
         byte[] msgpackBytes = Base64.getDecoder().decode(base64Data);
         ObjectMapper msgpackMapper = new ObjectMapper(new MessagePackFactory());
-        return msgpackMapper.readTree(msgpackBytes).toString();
+        String parsed = msgpackMapper.readTree(msgpackBytes).toString();
+        logger.trace("unpack base64 msg by msg pack decoder {} to {}", base64Data.length() > 60 ? base64Data.substring(40, 60) + "..." : base64Data, parsed);
+        return parsed;
     }
 
     public String base64Unpack(String base64Data) {
         byte[] msgpackBytes = Base64.getDecoder().decode(base64Data);
-        return new String(msgpackBytes);
+        String parsed = new String(msgpackBytes);
+        logger.debug("unpack base64 msg by base64 decoder {} to {}", base64Data.length() > 300 ? base64Data.substring(260, 300) + "..." : base64Data, parsed);
+        return parsed;
     }
 
     public boolean hasMid() {

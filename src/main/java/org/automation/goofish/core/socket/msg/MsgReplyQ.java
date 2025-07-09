@@ -2,6 +2,7 @@ package org.automation.goofish.core.socket.msg;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.Optional;
 public class MsgReplyQ {
 
     @Data
+    @ToString
     @AllArgsConstructor
     public static class ToReply {
         String mid;

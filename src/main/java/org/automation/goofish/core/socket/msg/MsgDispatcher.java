@@ -2,7 +2,9 @@ package org.automation.goofish.core.socket.msg;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +17,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
+import java.time.Duration;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,8 +33,8 @@ public class MsgDispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
-    @Value("${goofish.historical-data-maximum}")
-    int historicalDataMaximum = 20;
+    @Getter
+    private final ConcurrentHashMap<String, MsgContext> historyMsgRegistry = new ConcurrentHashMap<>();
 
     @Autowired
     ConnectionProperties properties;
@@ -51,9 +56,21 @@ public class MsgDispatcher {
         String itemId;
         String chatId;
         String mid;
-        String historyChat;
+        Sinks.One<ObjectNode> historyChat = Sinks.one();
         String itemInfo;
         String messagesQueryMid; // used for filter response return listed history chat
+
+        public Mono<ObjectNode> getHistoryChat() {
+            return historyChat.asMono()
+                    .timeout(Duration.ofSeconds(60));
+        }
+
+        public void setHistoryChat(ObjectNode history) {
+            Sinks.EmitResult result = historyChat.tryEmitValue(history);
+            if (result.isFailure()) {
+                logger.error("emit failed: {}", result);
+            }
+        }
     }
 
     @SneakyThrows

@@ -21,12 +21,13 @@ logging:
   level:
     root: INFO
     org.springframework.r2dbc: DEBUG #DEBUG
-    org.automation.goofish.core.socket: DEBUG #TRACE
+    org.automation.goofish.core.socket: TRACE #TRACE
 
 spring:
   sql:
     init:
       mode: ALWAYS
+
       schema-locations: classpath:schema.sql
   r2dbc:
     url: r2dbc:h2:file:///./data/goofish

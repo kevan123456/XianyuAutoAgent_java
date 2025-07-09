@@ -10,6 +10,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.automation.goofish.core.ConnectionProperties;
 import org.automation.goofish.core.socket.msg.receive.ReceiveMsg;
+import org.automation.goofish.data.ItemContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,8 @@ public class MsgDispatcher {
 
     @Getter
     private final ConcurrentHashMap<String, MsgContext> historyMsgRegistry = new ConcurrentHashMap<>();
+    @Getter
+    private final ConcurrentHashMap<String, ItemContext> itemContextRegistry = new ConcurrentHashMap<>();
 
     @Autowired
     ConnectionProperties properties;

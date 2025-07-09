@@ -249,30 +249,38 @@ public class GoofishSocket implements InitializingBean {
     }
 
     // 将商品信息加载到上下文中
-    private Mono<Void> loadItem(MsgDispatcher.MsgContext msgContext) {
+    private Mono<ItemContext> loadItem(MsgDispatcher.MsgContext msgContext) {
         final String itemId = msgContext.getItemId();
+        // fast return
+        if (dispatcher.getItemContextRegistry().get(itemId) == null) return Mono.empty();
         logger.debug("starting to load item: {}", itemId);
+
         return itemRepository.findById(itemId)
-                .switchIfEmpty(loadItemByApi(itemId))
+                .switchIfEmpty(
+                        client.getItemInfo(itemId)
+                                .flatMap(itemJson -> {
+                                    String itemInfo = JsonUtils.toJson(JsonUtils.readValue(itemJson.toString(), ItemInfo.class));
+                                    logger.debug("api fallback success for item: {}", itemInfo);
+                                    ItemContext itemContext = new ItemContext(itemId, itemInfo);
+
+                                    // 确保插入操作会被执行
+                                    return itemRepository.insert(itemContext)
+                                            .doOnSuccess(saved -> {
+                                                logger.debug("insert item {} to database successfully", itemId);
+                                                dispatcher.getItemContextRegistry().put(itemId, itemContext);
+                                                msgContext.setItemInfo(itemInfo); // 在这里设置上下文
+                                            })
+                                            .thenReturn(itemContext); // 使用 thenReturn 而不是 Mono.just
+                                })
+                )
                 .flatMap(itemCtx -> {
-                    // 情况1：数据库有记录且有效
                     if (itemCtx != null && itemCtx.getItemInfo() != null) {
                         logger.debug("found valid item info in db: {}", itemCtx.getItemInfo());
+                        dispatcher.getItemContextRegistry().put(itemId, itemCtx);
                         msgContext.setItemInfo(itemCtx.getItemInfo());
+                        return Mono.just(itemCtx);
                     }
                     return Mono.empty();
-                }).then();
-    }
-
-    public Mono<ItemContext> loadItemByApi(String itemId) {
-        return client.getItemInfo(itemId)
-                .flatMap(itemJson -> {
-                    String itemInfo = JsonUtils.toJson(JsonUtils.readValue(itemJson.toString(), ItemInfo.class));
-                    logger.debug("api fallback success for item: {}", itemInfo);
-                    ItemContext itemContext = new ItemContext(itemId, itemInfo);
-                    return itemRepository.insert(itemContext)
-                            .doOnSuccess(saved -> logger.debug("insert item {} to database successfully", itemId))
-                            .then(Mono.just(itemContext));
                 });
     }
 
@@ -333,6 +341,11 @@ public class GoofishSocket implements InitializingBean {
                 .flatMap(m -> m.hasTooLong2Tag()
                         ? new AckDiffMsg().send(session).then(Mono.just(m))
                         : Mono.just(m))
+                // 发送ACK确认, 放在处理推送包前 因为推送包处理时间长的话会触发server resend package
+                .flatMap(m -> {
+                    logger.trace("sending ack for mid: {}", m.getMid());
+                    return new AckMsg(m).send(session).thenReturn(m);
+                })
                 // 3. 处理同步推送包（核心逻辑）
                 .flatMap(m -> {
 
@@ -385,11 +398,6 @@ public class GoofishSocket implements InitializingBean {
                                 .thenReturn(m);
                     }
                     return Mono.just(m);
-                })
-                // 发送ACK确认
-                .flatMap(m -> {
-                    logger.trace("sending ack for mid: {}", m.getMid());
-                    return new AckMsg(m).send(session).thenReturn(m);
                 });
     }
 

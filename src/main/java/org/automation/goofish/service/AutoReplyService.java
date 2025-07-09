@@ -39,8 +39,7 @@ public class AutoReplyService implements InitializingBean {
     }
 
     public Mono<String> generateReply(String prompt) {
-        //logger.info("send prompt to ai host: {}", prompt);
-        logger.info("send prompt to ai host");
+        logger.info("send prompt to ai host: {}", prompt);
         return Mono.fromCallable(() ->
                 chatClient.prompt()
                         .system(systemPrompt)

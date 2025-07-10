@@ -6,6 +6,7 @@ goofish:
   socket-url: "wss://wss-goofish.dingtalk.com/"
   https-url: "https://www.goofish.com"
   login-check-url: "https://passport.goofish.com/newlogin/hasLogin.do"
+  upload-url: "https://stream-upload.goofish.com/api/upload.api"
   heartbeat:
     interval: 15
     timeout: 60 # timeout should greater than interval
@@ -46,4 +47,8 @@ spring:
       api-key: ${AI_DASHSCOPE_API_KEY}
       chat:
         options:
-          model: qwen-max #qwen-max #deepseek-r1
+          model: qwen-max
+          #tongyi-intent-detect-v3
+          #qwen-plus
+          #qwen-max
+          #deepseek-r1

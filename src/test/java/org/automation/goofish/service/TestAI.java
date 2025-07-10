@@ -27,16 +27,6 @@ public class TestAI {
         String context = """
                 {
                   "chat_history": [
-                  {
-                      "role": "buyer",
-                      "content": "好的好的谢谢你",
-                      "timestamp": 1751880998187
-                    },
-                    {
-                      "role": "seller",
-                      "content": "今天帮你发货",
-                      "timestamp": 1751880998186
-                    },
                     {
                       "role": "buyer",
                       "content": "我不需要",

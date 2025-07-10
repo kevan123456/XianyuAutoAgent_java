@@ -33,6 +33,8 @@ public class ConnectionProperties implements InitializingBean {
     String httpsUrl = "https://www.goofish.com";
     @Value("${goofish.login-check-url}")
     String loginCheckUrl;
+    @Value("${goofish.upload-url}")
+    String uploadUrl;
 
     @Getter
     @Value("${goofish.heartbeat.interval}")

@@ -252,7 +252,8 @@ public class GoofishSocket implements InitializingBean {
     private Mono<ItemContext> loadItem(MsgDispatcher.MsgContext msgContext) {
         final String itemId = msgContext.getItemId();
         // fast return
-        if (dispatcher.getItemContextRegistry().get(itemId) == null) return Mono.empty();
+        ItemContext cache = dispatcher.getItemContextRegistry().get(itemId);
+        if (cache != null) return Mono.just(cache);
         logger.debug("starting to load item: {}", itemId);
 
         return itemRepository.findById(itemId)

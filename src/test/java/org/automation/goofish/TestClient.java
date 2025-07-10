@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Base64;
 
 import static java.lang.invoke.MethodHandles.lookup;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,5 +45,15 @@ public class TestClient {
 
         assertTrue(responseBody.has("success"), "Response should contain 'success' field");
         assertEquals(200, response.getStatusCode().value(), "HTTP status should be 200");
+    }
+
+    @Test
+    void decode(){
+        String base64Str = "eyJjb250ZW50VHlwZSI6MiwiaW1hZ2UiOnsicGljcyI6W3siaGVpZ2h0IjoyMTYwLCJ0eXBlIjowLCJ1cmwiOiJodHRwczovL2ltZy5hbGljZG4uY29tL2ltZ2V4dHJhL2kzLzIxNTAzNjk4MTkvTzFDTjAxTUd6UENKMk1QQTJhRUQ2VmRfISEyMTUwMzY5ODE5LTQ5LXh5X2NoYXQud2VicCIsIndpZHRoIjozODQwfV19fQ";
+
+        byte[] decodedBytes = Base64.getDecoder().decode(base64Str);
+        String jsonStr = new String(decodedBytes);
+
+       logger.info(jsonStr);
     }
 }

@@ -10,14 +10,14 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ReplyMsg implements Message {
+public class ReplyTextMsg implements Message {
 
     private String lwp = "/r/MessageSend/sendByReceiverScope";
     private Headers headers = new Headers();
     private List<Object> body = new ArrayList<>();
 
     // constructor
-    public ReplyMsg(String chatId, String receiverId, String senderId, String reply) {
+    public ReplyTextMsg(String chatId, String receiverId, String senderId, String reply) {
 
         MessageItem messageItem = new MessageItem();
         messageItem.cid = "%s@goofish".formatted(chatId);

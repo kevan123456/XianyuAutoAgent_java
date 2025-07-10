@@ -1,5 +1,6 @@
 package org.automation.goofish.core.socket;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -30,6 +31,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -306,7 +308,7 @@ public class GoofishSocket implements InitializingBean {
                                     """.formatted(em, msgContext.getItemInfo()))
                             .flatMap(replyService::generateReply)
                             .flatMap(botMsg ->
-                                    new ReplyMsg(
+                                    new ReplyTextMsg(
                                             msgContext.getChatId(),
                                             msgContext.getReceiverId(),
                                             properties.getUserId(),
@@ -314,10 +316,17 @@ public class GoofishSocket implements InitializingBean {
                                     ).send(session)
                                             .thenReturn(botMsg)
                             );
-                })
-                .onErrorResume(e -> {
-                    logger.error("Process reply failed", e);
-                    return Mono.empty();
+                            // comment out command sending picture
+                            /*.flatMap(b -> client.upload(Path.of("screenshots/workflow.png"))
+                                    .flatMap(e -> {
+                                        JsonNode address = e.getBody() != null ? e.getBody().path("object") : null;
+                                        if (address!=null) {
+                                            return new ReplyPictureMsg(msgContext.getChatId(), msgContext.getReceiverId(), properties.getUserId(), address)
+                                                    .send(session).thenReturn(b);
+                                        }
+                                        return Mono.just(b);
+                                    })
+                            );*/
                 });
     }
 

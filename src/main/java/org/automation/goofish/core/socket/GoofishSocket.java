@@ -1,6 +1,5 @@
 package org.automation.goofish.core.socket;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -31,7 +30,6 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -255,7 +253,10 @@ public class GoofishSocket implements InitializingBean {
         final String itemId = msgContext.getItemId();
         // fast return
         ItemContext cache = dispatcher.getItemContextRegistry().get(itemId);
-        if (cache != null) return Mono.just(cache);
+        if (cache != null) {
+            msgContext.setItemInfo(cache.getItemInfo());
+            return Mono.just(cache);
+        }
         logger.debug("starting to load item: {}", itemId);
 
         return itemRepository.findById(itemId)
@@ -316,7 +317,7 @@ public class GoofishSocket implements InitializingBean {
                                     ).send(session)
                                             .thenReturn(botMsg)
                             );
-                            // comment out command sending picture
+                    // comment out command sending picture
                             /*.flatMap(b -> client.upload(Path.of("screenshots/workflow.png"))
                                     .flatMap(e -> {
                                         JsonNode address = e.getBody() != null ? e.getBody().path("object") : null;

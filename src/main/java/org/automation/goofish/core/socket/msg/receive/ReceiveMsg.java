@@ -125,6 +125,15 @@ public class ReceiveMsg implements Message {
     }
 
     @JsonIgnore
+    public void setMessage(int idx,String content){
+        if (body == null || body.syncPushPackage == null || body.syncPushPackage.data == null) {
+            return;
+        }
+        SyncData data = body.syncPushPackage.data.get(idx);
+        data.setData(content);
+    }
+
+    @JsonIgnore
     public void setMessageContent(int idx, String value) {
         SyncData data = body.syncPushPackage.data.get(idx);
         data.setContent(value);

@@ -1,8 +1,9 @@
 package org.automation.goofish.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.automation.goofish.service.rag.CloudRagService;
+import org.automation.goofish.service.rag.LocalRagService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -31,11 +32,17 @@ public class AutoReplyService implements InitializingBean {
     @Getter
     public String emotionPrompt;
 
-
     @Autowired
     @SneakyThrows
-    public AutoReplyService(ChatClient.Builder builder) {
-        this.chatClient = builder.defaultSystem(systemPrompt).build();
+    public AutoReplyService(ChatClient.Builder builder,
+                            LocalRagService localRagService,
+                            CloudRagService cloudRagService) {
+        this.chatClient = builder
+                .defaultSystem(systemPrompt)
+                /*.defaultAdvisors(
+                        localRagService.getDocumentRetrievalAdvisor(),
+                        cloudRagService.getDocumentRetrievalAdvisor())*/
+                .build();
     }
 
     public Mono<String> generateReply(String prompt) {

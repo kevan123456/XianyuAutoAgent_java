@@ -365,7 +365,7 @@ public class GoofishSocket implements InitializingBean {
                     }
 
                     // 只处理第一个syncData对象（或根据需要修改）
-                    ReceiveMsg.SyncData data = m.getSyncData().getFirst();
+                    ReceiveMsg.SyncData data = m.getSyncData().get(0) ;
                     return switch (data.getObjectType()) {
                         case 40000 -> dispatcher.handle(m, session)
                                 .flatMap(context -> {

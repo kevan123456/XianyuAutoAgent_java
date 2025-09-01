@@ -7,6 +7,7 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,6 +18,9 @@ import org.springframework.retry.annotation.EnableRetry;
 @EnableRetry
 @SpringBootApplication
 public class Starter {
+
+    @Value("${spring.ai.dashscope.api-key}")
+    String apiKey ;
     public static void main(String[] args) {
         SpringApplication.run(Starter.class, args);
     }
@@ -43,6 +47,6 @@ public class Starter {
 
     @Bean
     public DashScopeApi dashScopeApi() {
-        return DashScopeApi.builder().apiKey(System.getenv("AI_DASHSCOPE_API_KEY")).build();
+        return DashScopeApi.builder().apiKey(apiKey).build();
     }
 }

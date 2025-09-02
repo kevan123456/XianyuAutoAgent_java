@@ -1,5 +1,5 @@
 goofish:
-  cookies-str: cna=4IH7IMxzjT4CAWVF5YpJenVa; tfstk=ghxxaUTJGYexEVP4HC0ojsR0YcDHW4vqoIJQj1f05QdJdpPc5njD6PdDQCbsgix9wIAJ6NkVs119sdTDkDmH3KSNf1hnxDDlvpEeD1NGfiS5Y6Sz6DmH3KwchvvSxhqImzX11GafhaMRI9qffO6je_6OLPNX1GM-eOBOhr1bfgw5dOs11CsseL1PCG161GMJF_W6jfHAs-1UXEtk5zYjcPq7V3BAk1KGwknEItQA7K1RUT--fZCBh_Eiith0H_6pVfPc_3pWcevr6kCX-pJHXay_faYWg3QJr7iNUnv6DNKt6PSWwF91y3cbx1YpKh79cAyc_EXF4hKHvbebt6BgkYK_7P7fU1Jt6o7ZZLwCe6DorPzNyTWRtYhQ7P7jFTCnUgUa7aBP.; t=9b54b430e8303842033505b9cd6723f6; sgcookie=E100KWwilP7XP1sCZPMxbqbSDt3DU4dxtJ227JuyplFwYi6aM9vD1jojIxdGvyaXmFKkyVL5RlUcISNRRgOBbOwp55XVvXKPGqCSdVgEZtBu2d0%3D; tracknick=xy961255941882; havana_lgc2_77=eyJoaWQiOjIyMTk0Mjg1NTE4NTUsInNnIjoiYjkxYWM3YTIzYmQ2NDY2MzNjZmQxYTMwZmYwODQzNzMiLCJzaXRlIjo3NywidG9rZW4iOiIxX1QySXZVVU5ZWF9BWUlkUThtZjNTQSJ9; _hvn_lgc_=77; havana_lgc_exp=1757841995882; unb=2219428551855; cookie2=1b8f699e13a0566acd969251a30820e8; _samesite_flag_=true; _tb_token_=ef578e0e1eb63; sdkSilent=1756776134090; csg=dc043132; xlly_s=1; _m_h5_tk=b4679f3850593e3ece201ab8eceb8829_1756704400025; _m_h5_tk_enc=08f97f0d5a8e3bfab0ede27e92bed694
+  cookies-str: cna=4IH7IMxzjT4CAWVF5YpJenVa; tfstk=gvaqZ5_jHV27i_95l83waRPSRHixSVWB_PMss5ViGxDDlE9g4J2-hlZjhCrzI8njnoNXMueQtEafDVTwkV3Gd9_CRSNxWV2H7i-SH7V-s_GcdrXpGV3GdTtWSmQEW-xh18u0Z_ljTf0iscfrZXMkofYmsLfr6Y0isEmDqacZ_hvmsRVlafHoIV0gI4fr6YDiSVx9hR2Bzfnca5Yisp9xMmk3iY8wMzlo0nFmUFYgzeiqKeMySF4rM5rMHU8c8YqbjrguoTbs2oVz7DUOftF-uxPK4uB2rbiUOkgY-T8nQo2YLY2hxCk7bWUxxP6pPx4bjrixWgWyBbVK_PE2IhmD5bkCa_RNi2qea-KqfhKtD0hrdsfDXhnmdbkCa_-9Xm_rav1ci; t=9b54b430e8303842033505b9cd6723f6; sgcookie=E100uISvmUr%2B5bZqQvXnUGuTGod%2FxUYpbNMYDqVV4gZHEdPHu2VWaCndfI8PfjuJfWUTUcGlBFdlbhjkkZquRrchUfS8Os3e%2FjfLLi5pYwOeHTs%3D; tracknick=xy961255941882; havana_lgc2_77=eyJoaWQiOjIyMTk0Mjg1NTE4NTUsInNnIjoiYjkxYWM3YTIzYmQ2NDY2MzNjZmQxYTMwZmYwODQzNzMiLCJzaXRlIjo3NywidG9rZW4iOiIxX1QySXZVVU5ZWF9BWUlkUThtZjNTQSJ9; _hvn_lgc_=77; havana_lgc_exp=1757841995882; unb=2219428551855; cookie2=1b8f699e13a0566acd969251a30820e8; _samesite_flag_=true; _tb_token_=ef578e0e1eb63; sdkSilent=1756863802261; csg=96bdb4cc; xlly_s=1; _m_h5_tk=3eda7a48ec1a93e9c4c56ae35694edbc_1756798548581; _m_h5_tk_enc=788c0bc7df6cd118b6aa02d3ef39c411
   api-url: https://h5api.m.goofish.com/h5/
   get-token-uri: "mtop.taobao.idlemessage.pc.login.token/1.0/"
   get-iteminfo-uri: "mtop.taobao.idle.pc.detail/1.0/"
@@ -29,7 +29,6 @@ spring:
   sql:
     init:
       mode: ALWAYS
-
       schema-locations: classpath:schema.sql
   r2dbc:
     url: r2dbc:h2:file:///./data/goofish
@@ -52,7 +51,3 @@ spring:
       chat:
         options:
           model: deepseek-r1-distill-llama-70b
-          #tongyi-intent-detect-v3
-          #qwen-plus
-          #qwen-max
-          #deepseek-r1

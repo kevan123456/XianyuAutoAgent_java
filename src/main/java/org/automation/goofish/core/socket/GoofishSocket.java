@@ -305,8 +305,7 @@ public class GoofishSocket implements InitializingBean {
                             .map(em -> """
                                     基于以下上下文生成你的回复
                                     聊天上下文: %s
-                                    商品信息: %s
-                                    """.formatted(em, msgContext.getItemInfo()))
+                                    """.formatted(em))
                             .flatMap(replyService::generateReply)
                             .flatMap(botMsg ->
                                     new ReplyTextMsg(

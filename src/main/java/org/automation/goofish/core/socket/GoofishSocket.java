@@ -45,8 +45,6 @@ public class GoofishSocket implements InitializingBean {
     private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
     @Autowired
-    AutoReplyService service;
-    @Autowired
     GoofishClient client;
     @Autowired
     MsgDispatcher dispatcher;
@@ -298,7 +296,7 @@ public class GoofishSocket implements InitializingBean {
                             %s
                             处理json格式的message_history 请按时间倒序处理附件的chat_history
                             %s
-                            """.formatted(service.emotionPrompt, chatHistory.toString());
+                            """.formatted(replyService.emotionPrompt, chatHistory.toString());
 
                     // 3. 生成回复（链式调用）
                     return replyService.generateReply(emotionPrompt)

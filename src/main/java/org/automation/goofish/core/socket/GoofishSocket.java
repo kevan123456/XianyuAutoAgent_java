@@ -29,10 +29,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.invoke.MethodHandles.lookup;
 import static org.automation.goofish.utils.JsonUtils.OBJECT_MAPPER;
@@ -58,6 +61,9 @@ public class GoofishSocket implements InitializingBean {
     @Autowired
     ChatRepository chatRepository;
     ReactorNettyWebSocketClient delegate;
+    private final int maxRetries = 5;
+
+    private final AtomicLong retryCount = new AtomicLong(0);
 
     public Mono<Void> establish() {
         return delegate.execute(properties.getSocketUrl(),
@@ -68,7 +74,19 @@ public class GoofishSocket implements InitializingBean {
                                     receive(session),
                                     heartbeat(session)
                             )).then();
-                });
+                })
+                .retryWhen(Retry.backoff(maxRetries, Duration.ofSeconds(1))
+                .maxBackoff(Duration.ofSeconds(30))
+                .jitter(0.5)
+                .doBeforeRetry(retrySignal -> {
+                    long attempt = retrySignal.totalRetries() + 1;
+                    retryCount.set(attempt);
+                    System.out.println("连接断开，正在进行第 " + attempt + " 次重试...");
+                })
+                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                    System.out.println("已达到最大重试次数 " + maxRetries + "，放弃连接尝试");
+                    return new RuntimeException("连接失败，已达到最大重试次数", retrySignal.failure());
+                }));
     }
 
     private Mono<Void> register(WebSocketSession session) {
